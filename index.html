@@ -61,38 +61,42 @@
                 console.error('Error accessing camera:', error);
             });
 
-        // Function to apply filter (overlay image)
-        function applyFilter() {
+        // Function to continuously update the canvas with the filter
+        function updateCanvas() {
+            // Clear the canvas
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw the video feed
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const videoImageData = context.getImageData(0, 0, canvas.width, canvas.height);
 
-            // Get the size and position of the filter image
-            const filterWidth = 200; // Adjust this as needed
-            const filterHeight = 200; // Adjust this as needed
-            const filterX = (canvas.width - filterWidth) / 2; // Center the filter horizontally
-            const filterY = (canvas.height - filterHeight) / 2; // Center the filter vertically
+            // Check if the filter is applied
+            if (filterImage.style.display !== 'none') {
+                // Get the size and position of the filter image
+                const filterWidth = 200; // Adjust this as needed
+                const filterHeight = 200; // Adjust this as needed
+                const filterX = (canvas.width - filterWidth) / 2; // Center the filter horizontally
+                const filterY = (canvas.height - filterHeight) / 2; // Center the filter vertically
 
-            // Draw the filter image on top of the video feed
-            context.drawImage(filterImage, filterX, filterY, filterWidth, filterHeight);
+                // Draw the filter image on top of the video feed
+                context.drawImage(filterImage, filterX, filterY, filterWidth, filterHeight);
+            }
 
-            // Apply filter to the video feed
-            const filteredImageData = context.getImageData(0, 0, canvas.width, canvas.height);
-            
-            // Apply any additional filter effects here if needed
-
-            context.putImageData(filteredImageData, 0, 0);
+            // Request the next animation frame
+            requestAnimationFrame(updateCanvas);
         }
+
+        // Start updating the canvas
+        updateCanvas();
 
         // Event listener for filter button
-        document.getElementById('applyFilter').addEventListener('click', applyFilter);
-
-        // Function to clear filter
-        function clearFilter() {
-            context.clearRect(0, 0, canvas.width, canvas.height);
-        }
+        document.getElementById('applyFilter').addEventListener('click', function () {
+            filterImage.style.display = 'block';
+        });
 
         // Event listener for clear filter button
-        document.getElementById('clearFilter').addEventListener('click', clearFilter);
+        document.getElementById('clearFilter').addEventListener('click', function () {
+            filterImage.style.display = 'none';
+        });
     </script>
 </body>
 </html>
