@@ -44,6 +44,9 @@
         </div>
     </div>
 
+    <!-- Include face-api.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/face-api.js/2.0.0/face-api.min.js"></script>
+
     <!-- JavaScript to access camera and apply filters -->
     <script>
         // Get video and canvas elements
@@ -52,41 +55,63 @@
         const context = canvas.getContext('2d');
         const filterImage = document.getElementById('filter');
 
-        // Initialize camera
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(function (stream) {
-                video.srcObject = stream;
-            })
-            .catch(function (error) {
-                console.error('Error accessing camera:', error);
-            });
+        // Load face-api.js models
+        async function loadFaceAPI() {
+            await faceapi.loadSsdMobilenetv1Model('/models'); // Path to face-api.js models
+            await faceapi.loadFaceLandmarkModel('/models');
+        }
 
-        // Function to continuously update the canvas with the filter
-        function updateCanvas() {
+        // Initialize camera and face detection
+        async function initCamera() {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+
+            // Set canvas size to match video feed size
+            video.addEventListener('play', () => {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+            });
+        }
+
+        // Function to apply filter to face
+        function applyFilterToFace(face) {
+            // Get the size and position of the filter image
+            const filterWidth = 200; // Adjust this as needed
+            const filterHeight = 200; // Adjust this as needed
+            const filterX = face.detection.box.x + (face.detection.box.width - filterWidth) / 2;
+            const filterY = face.detection.box.y + (face.detection.box.height - filterHeight) / 2;
+
             // Clear the canvas
             context.clearRect(0, 0, canvas.width, canvas.height);
 
             // Draw the video feed
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            // Check if the filter is applied
-            if (filterImage.style.display !== 'none') {
-                // Get the size and position of the filter image
-                const filterWidth = 200; // Adjust this as needed
-                const filterHeight = 200; // Adjust this as needed
-                const filterX = (canvas.width - filterWidth) / 2; // Center the filter horizontally
-                const filterY = (canvas.height - filterHeight) / 2; // Center the filter vertically
-
-                // Draw the filter image on top of the video feed
-                context.drawImage(filterImage, filterX, filterY, filterWidth, filterHeight);
-            }
-
-            // Request the next animation frame
-            requestAnimationFrame(updateCanvas);
+            // Draw the filter image on the detected face
+            context.drawImage(filterImage, filterX, filterY, filterWidth, filterHeight);
         }
 
-        // Start updating the canvas
-        updateCanvas();
+        // Detect faces and apply filter
+        async function detectFace() {
+            const faces = await faceapi.detectAllFaces(video);
+            
+            if (faces.length > 0) {
+                applyFilterToFace(faces[0]); // Apply filter to the first detected face
+            }
+
+            requestAnimationFrame(detectFace);
+        }
+
+        // Start the application
+        async function startApp() {
+            await loadFaceAPI();
+            await initCamera();
+            detectFace();
+        }
+
+        startApp().catch(error => {
+            console.error('Error starting the app:', error);
+        });
 
         // Event listener for filter button
         document.getElementById('applyFilter').addEventListener('click', function () {
@@ -96,6 +121,7 @@
         // Event listener for clear filter button
         document.getElementById('clearFilter').addEventListener('click', function () {
             filterImage.style.display = 'none';
+            context.clearRect(0, 0, canvas.width, canvas.height);
         });
     </script>
 </body>
