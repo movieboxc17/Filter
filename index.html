@@ -18,9 +18,9 @@
         }
         #buttons {
             position: absolute;
-            top: 10px; /* Adjust the top position as needed */
-            left: 10px; /* Adjust the left position as needed */
-            z-index: 1; /* Ensure buttons are on top */
+            top: 10px;
+            left: 10px;
+            z-index: 1;
         }
     </style>
 </head>
@@ -28,101 +28,71 @@
     <h1>Face Filter Web App</h1>
     
     <div id="container">
-        <!-- Video element to display camera feed -->
         <video id="video" width="640" height="480" autoplay></video>
-
-        <!-- Canvas element to display filtered video -->
         <canvas id="canvas" width="640" height="480"></canvas>
-
-        <!-- Filter image -->
         <img id="filter" src="Cow.png" alt="Cow Filter">
-
-        <!-- Filter buttons -->
         <div id="buttons">
             <button id="applyFilter">Apply Filter</button>
             <button id="clearFilter">Clear Filter</button>
         </div>
     </div>
 
-    <!-- Include face-api.js library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/face-api.js/2.0.0/face-api.min.js"></script>
-
-    <!-- JavaScript to access camera and apply filters -->
     <script>
-        // Get video and canvas elements
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const context = canvas.getContext('2d');
         const filterImage = document.getElementById('filter');
+        const videoWidth = 640;
+        const videoHeight = 480;
 
-        // Load face-api.js models
-        async function loadFaceAPI() {
-            await faceapi.loadSsdMobilenetv1Model('/models'); // Path to face-api.js models
-            await faceapi.loadFaceLandmarkModel('/models');
-        }
-
-        // Initialize camera and face detection
-        async function initCamera() {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            video.srcObject = stream;
-
-            // Set canvas size to match video feed size
-            video.addEventListener('play', () => {
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function (stream) {
+                video.srcObject = stream;
+            })
+            .catch(function (error) {
+                console.error('Error accessing camera:', error);
             });
-        }
 
-        // Function to apply filter to face
-        function applyFilterToFace(face) {
-            // Get the size and position of the filter image
-            const filterWidth = 200; // Adjust this as needed
-            const filterHeight = 200; // Adjust this as needed
-            const filterX = face.detection.box.x + (face.detection.box.width - filterWidth) / 2;
-            const filterY = face.detection.box.y + (face.detection.box.height - filterHeight) / 2;
+        async function trackFace() {
+            const faces = await faceapi.detectSingleFace(video);
 
-            // Clear the canvas
-            context.clearRect(0, 0, canvas.width, canvas.height);
+            if (faces) {
+                const face = faces.box;
 
-            // Draw the video feed
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const filterWidth = face.width * 1.5; // Adjust the filter size as needed
+                const filterHeight = face.height * 1.5;
+                const filterX = face.x - (filterWidth - face.width) / 2;
+                const filterY = face.y - (filterHeight - face.height) / 2;
 
-            // Draw the filter image on the detected face
-            context.drawImage(filterImage, filterX, filterY, filterWidth, filterHeight);
-        }
-
-        // Detect faces and apply filter
-        async function detectFace() {
-            const faces = await faceapi.detectAllFaces(video);
-            
-            if (faces.length > 0) {
-                applyFilterToFace(faces[0]); // Apply filter to the first detected face
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                context.drawImage(filterImage, filterX, filterY, filterWidth, filterHeight);
             }
 
-            requestAnimationFrame(detectFace);
+            requestAnimationFrame(trackFace);
         }
 
-        // Start the application
-        async function startApp() {
-            await loadFaceAPI();
-            await initCamera();
-            detectFace();
-        }
+        document.getElementById('applyFilter').addEventListener('click', trackFace);
 
-        startApp().catch(error => {
-            console.error('Error starting the app:', error);
-        });
-
-        // Event listener for filter button
-        document.getElementById('applyFilter').addEventListener('click', function () {
-            filterImage.style.display = 'block';
-        });
-
-        // Event listener for clear filter button
-        document.getElementById('clearFilter').addEventListener('click', function () {
-            filterImage.style.display = 'none';
+        function clearFilter() {
             context.clearRect(0, 0, canvas.width, canvas.height);
-        });
+        }
+
+        document.getElementById('clearFilter').addEventListener('click', clearFilter);
+
+        // Load the Face API model
+        Promise.all([
+            faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
+            faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
+        ]).then(startFaceTracking);
+
+        function startFaceTracking() {
+            trackFace();
+        }
     </script>
+    
+    <!-- Load Face API -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
 </body>
 </html>
