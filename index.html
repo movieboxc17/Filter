@@ -5,40 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Face Filter Web App</title>
     <style>
-        #video {
-            position: absolute;
-            top: 0;
-            left: 0;
+        #container {
+            position: relative;
         }
-        #canvas {
+        #video, #canvas, #filter {
             position: absolute;
             top: 0;
             left: 0;
         }
         #filter {
-            position: absolute;
-            top: 0;
-            left: 0;
             display: none;
+        }
+        #buttons {
+            position: absolute;
+            top: 10px; /* Adjust the top position as needed */
+            left: 10px; /* Adjust the left position as needed */
+            z-index: 1; /* Ensure buttons are on top */
         }
     </style>
 </head>
 <body>
     <h1>Face Filter Web App</h1>
     
-    <!-- Video element to display camera feed -->
-    <video id="video" width="640" height="480" autoplay></video>
+    <div id="container">
+        <!-- Video element to display camera feed -->
+        <video id="video" width="640" height="480" autoplay></video>
 
-    <!-- Canvas element to display filtered video -->
-    <canvas id="canvas" width="640" height="480"></canvas>
+        <!-- Canvas element to display filtered video -->
+        <canvas id="canvas" width="640" height="480"></canvas>
 
-    <!-- Filter image -->
-    <img id="filter" src="Cow.png" alt="Cow Filter">
+        <!-- Filter image -->
+        <img id="filter" src="Cow.png" alt="Cow Filter">
 
-    <!-- Filter buttons -->
-    <div>
-        <button id="applyFilter">Apply Filter</button>
-        <button id="clearFilter">Clear Filter</button>
+        <!-- Filter buttons -->
+        <div id="buttons">
+            <button id="applyFilter">Apply Filter</button>
+            <button id="clearFilter">Clear Filter</button>
+        </div>
     </div>
 
     <!-- JavaScript to access camera and apply filters -->
