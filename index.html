@@ -62,11 +62,11 @@
         }
 
         async function trackFace() {
-            const faces = await faceapi.detectSingleFace(video).withFaceLandmarks();
+            const videoEl = document.getElementById('video');
+            const faces = await faceapi.detectAllFaces(videoEl, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks();
 
-            if (faces) {
-                const face = faces.detection.box;
-
+            if (faces.length > 0) {
+                const face = faces[0].boundingBox;
                 const filterWidth = face.width * 1.5;
                 const filterHeight = face.height * 1.5;
                 const filterX = face.x - (filterWidth - face.width) / 2;
