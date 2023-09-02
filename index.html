@@ -1,1 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Filter Web App</title>
+    <style>
+        #video {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        #filter {
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Face Filter Web App</h1>
+    
+    <!-- Video element to display camera feed -->
+    <video id="video" width="640" height="480" autoplay></video>
 
+    <!-- Canvas element to display filtered video -->
+    <canvas id="canvas" width="640" height="480"></canvas>
+
+    <!-- Filter image -->
+    <img id="filter" src="Cow.png" alt="Cow Filter">
+
+    <!-- Filter buttons -->
+    <div>
+        <button id="applyFilter">Apply Filter</button>
+        <button id="clearFilter">Clear Filter</button>
+    </div>
+
+    <!-- JavaScript to access camera and apply filters -->
+    <script>
+        // Get video and canvas elements
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+        const filterImage = document.getElementById('filter');
+
+        // Initialize camera
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function (stream) {
+                video.srcObject = stream;
+            })
+            .catch(function (error) {
+                console.error('Error accessing camera:', error);
+            });
+
+        // Function to apply filter (overlay image)
+        function applyFilter() {
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const videoImageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+            // Get the size and position of the filter image
+            const filterWidth = 200; // Adjust this as needed
+            const filterHeight = 200; // Adjust this as needed
+            const filterX = (canvas.width - filterWidth) / 2; // Center the filter horizontally
+            const filterY = (canvas.height - filterHeight) / 2; // Center the filter vertically
+
+            // Draw the filter image on top of the video feed
+            context.drawImage(filterImage, filterX, filterY, filterWidth, filterHeight);
+
+            // Apply filter to the video feed
+            const filteredImageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            
+            // Apply any additional filter effects here if needed
+
+            context.putImageData(filteredImageData, 0, 0);
+        }
+
+        // Event listener for filter button
+        document.getElementById('applyFilter').addEventListener('click', applyFilter);
+
+        // Function to clear filter
+        function clearFilter() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Event listener for clear filter button
+        document.getElementById('clearFilter').addEventListener('click', clearFilter);
+    </script>
+</body>
+</html>
