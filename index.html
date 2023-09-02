@@ -59,7 +59,6 @@
         async function startFaceTracking() {
             await setupCamera();
             await loadFaceAPI();
-            trackFace();
         }
 
         async function trackFace() {
@@ -77,11 +76,12 @@
                 context.drawImage(video, 0, 0, canvas.width, canvas.height);
                 context.drawImage(filterImage, filterX, filterY, filterWidth, filterHeight);
             }
-
-            requestAnimationFrame(trackFace);
         }
 
-        document.getElementById('applyFilter').addEventListener('click', startFaceTracking);
+        document.getElementById('applyFilter').addEventListener('click', async () => {
+            await startFaceTracking();
+            setInterval(trackFace, 100); // Track the face continuously
+        });
 
         function clearFilter() {
             context.clearRect(0, 0, canvas.width, canvas.height);
