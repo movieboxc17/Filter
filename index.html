@@ -45,21 +45,30 @@
         const videoWidth = 640;
         const videoHeight = 480;
 
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(function (stream) {
-                video.srcObject = stream;
-            })
-            .catch(function (error) {
-                console.error('Error accessing camera:', error);
-            });
+        async function setupCamera() {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+        }
+
+        async function loadFaceAPI() {
+            await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
+            await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
+            await faceapi.nets.faceRecognitionNet.loadFromUri('/models');
+        }
+
+        async function startFaceTracking() {
+            await setupCamera();
+            await loadFaceAPI();
+            trackFace();
+        }
 
         async function trackFace() {
-            const faces = await faceapi.detectSingleFace(video);
+            const faces = await faceapi.detectSingleFace(video).withFaceLandmarks();
 
             if (faces) {
-                const face = faces.box;
+                const face = faces.detection.box;
 
-                const filterWidth = face.width * 1.5; // Adjust the filter size as needed
+                const filterWidth = face.width * 1.5;
                 const filterHeight = face.height * 1.5;
                 const filterX = face.x - (filterWidth - face.width) / 2;
                 const filterY = face.y - (filterHeight - face.height) / 2;
@@ -72,7 +81,7 @@
             requestAnimationFrame(trackFace);
         }
 
-        document.getElementById('applyFilter').addEventListener('click', trackFace);
+        document.getElementById('applyFilter').addEventListener('click', startFaceTracking);
 
         function clearFilter() {
             context.clearRect(0, 0, canvas.width, canvas.height);
@@ -80,15 +89,8 @@
 
         document.getElementById('clearFilter').addEventListener('click', clearFilter);
 
-        // Load the Face API model
-        Promise.all([
-            faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
-            faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
-        ]).then(startFaceTracking);
-
-        function startFaceTracking() {
-            trackFace();
-        }
+        // Load the Face API model when the page loads
+        startFaceTracking();
     </script>
     
     <!-- Load Face API -->
