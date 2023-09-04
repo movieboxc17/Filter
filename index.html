@@ -8,8 +8,9 @@
 </head>
 <body>
     <h1>Face Filter</h1>
-    <video id="video" width="640" height="480" autoplay></video>
+    <video id="video" width="640" height="480"></video>
     <canvas id="canvas" width="640" height="480"></canvas>
+    <button id="startButton">Start</button>
 
     <script>
         // Initialize video and canvas
@@ -20,7 +21,10 @@
         filterImage.src = 'Cow.png'; // Replace with the path to your filter image
 
         // Load the tracking.js library and start face tracking
-        tracking.track('#video', new tracking.FaceTracker());
+        var tracker = new tracking.ObjectTracker('face');
+        tracker.setInitialScale(4);
+        tracker.setStepSize(2);
+        tracking.track('#video', tracker, { camera: true });
 
         tracking.FramesPerSecond = 30; // Adjust frame rate as needed
 
@@ -39,14 +43,18 @@
             });
         });
 
-        // Access the user's camera
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(function (stream) {
-                video.srcObject = stream;
-            })
-            .catch(function (err) {
-                console.error('Error accessing the camera: ' + err);
-            });
+        // Start the video when the "Start" button is clicked
+        var startButton = document.getElementById('startButton');
+        startButton.addEventListener('click', function () {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function (stream) {
+                    video.srcObject = stream;
+                    startButton.style.display = 'none'; // Hide the button
+                })
+                .catch(function (err) {
+                    console.error('Error accessing the camera: ' + err);
+                });
+        });
     </script>
 </body>
 </html>
