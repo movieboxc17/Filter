@@ -6,10 +6,12 @@
 <body>
     <video id="video" autoplay></video>
     <canvas id="canvas"></canvas>
+    <button id="applyFilterButton">Apply Filter</button>
     <script>
         // Define your canvas and video elements
         const canvas = document.getElementById('canvas');
         const video = document.getElementById('video');
+        const applyFilterButton = document.getElementById('applyFilterButton');
 
         // Load the cow filter image
         const cowFilter = new Image();
@@ -33,11 +35,14 @@
                         const context = canvas.getContext('2d');
                         context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-                        // Detect faces using face-api.js (you'll need to include the library)
-                        // Replace with your face detection code
+                        // Check if the "Apply Filter" button is clicked
+                        applyFilterButton.addEventListener('click', async function () {
+                            // Detect faces using face-api.js (you'll need to include the library)
+                            // Replace with your face detection code
 
-                        // Apply the cow filter to detected faces
-                        // Replace with your filter application code
+                            // Apply the cow filter to detected faces
+                            // Replace with your filter application code
+                        });
                     }
                 }, 100);
             });
